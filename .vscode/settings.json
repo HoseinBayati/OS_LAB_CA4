@@ -1,5 +1,9 @@
 {
     "files.associations": {
-        "spinlock.h": "c"
+        "spinlock.h": "c",
+        "x86.h": "c",
+        "proc.h": "c",
+        "param.h": "c",
+        "mmu.h": "c"
     }
 }
