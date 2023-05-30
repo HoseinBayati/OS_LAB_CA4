@@ -24,3 +24,4 @@
 #define SYS_sem_init    22
 #define SYS_sem_acquire 23
 #define SYS_sem_release 24
+#define SYS_sem_destroy 25

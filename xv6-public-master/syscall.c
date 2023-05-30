@@ -107,6 +107,7 @@ extern int sys_uptime(void);
 extern int sys_sem_init(void);
 extern int sys_sem_acquire(void);
 extern int sys_sem_release(void);
+extern int sys_sem_destroy(void);
 
 
 
@@ -135,7 +136,8 @@ static int (*syscalls[])(void) = {
 
 [SYS_sem_init]    sys_sem_init,
 [SYS_sem_acquire] sys_sem_acquire,
-[SYS_sem_release] sys_sem_release
+[SYS_sem_release] sys_sem_release,
+[SYS_sem_destroy] sys_sem_destroy
 };
 
 void
