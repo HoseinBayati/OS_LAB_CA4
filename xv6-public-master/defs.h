@@ -10,6 +10,11 @@ struct sleeplock;
 struct stat;
 struct superblock;
 
+// Semaphore.c
+void            sem_init(uint,uint); // added 
+void            sem_acquire(uint);   // added
+void            sem_release(uint);   // added
+
 // bio.c
 void            binit(void);
 struct buf*     bread(uint, uint);
@@ -115,11 +120,13 @@ void            procdump(void);
 void            scheduler(void) __attribute__((noreturn));
 void            sched(void);
 void            setproc(struct proc*);
+void            sleepcurrent();
 void            sleep(void*, struct spinlock*);
 void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
 void            yield(void);
+void            wakeupprocess(struct proc* p);
 
 // swtch.S
 void            swtch(struct context**, struct context*);

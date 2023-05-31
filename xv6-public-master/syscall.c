@@ -104,12 +104,9 @@ extern int sys_wait(void);
 extern int sys_write(void);
 extern int sys_uptime(void);
 
-extern int sys_sem_init(void);
-extern int sys_sem_acquire(void);
-extern int sys_sem_release(void);
-extern int sys_sem_destroy(void);
-
-
+extern int sys_sem_init(void);    //added
+extern int sys_sem_acquire(void); //added
+extern int sys_sem_release(void); //added
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -133,11 +130,9 @@ static int (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
-
-[SYS_sem_init]    sys_sem_init,
-[SYS_sem_acquire] sys_sem_acquire,
-[SYS_sem_release] sys_sem_release,
-[SYS_sem_destroy] sys_sem_destroy
+[SYS_sem_init] sys_sem_init, // added
+[SYS_sem_acquire] sys_sem_acquire, //added
+[SYS_sem_release] sys_sem_release, //added
 };
 
 void

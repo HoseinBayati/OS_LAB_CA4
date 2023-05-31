@@ -7,67 +7,67 @@
 #include "mmu.h"
 #include "proc.h"
 
-int sem_init(struct semaphore* sem, int value);
-int sem_acquire(struct semaphore* sem);
-int sem_release(struct semaphore* sem);
-
-
-int sys_fork(void)
+int
+sys_fork(void)
 {
   return fork();
 }
 
-int sys_exit(void)
+int
+sys_exit(void)
 {
   exit();
-  return 0; // not reached
+  return 0;  // not reached
 }
 
-int sys_wait(void)
+int
+sys_wait(void)
 {
   return wait();
 }
 
-int sys_kill(void)
+int
+sys_kill(void)
 {
   int pid;
 
-  if (argint(0, &pid) < 0)
+  if(argint(0, &pid) < 0)
     return -1;
   return kill(pid);
 }
 
-int sys_getpid(void)
+int
+sys_getpid(void)
 {
   return myproc()->pid;
 }
 
-int sys_sbrk(void)
+int
+sys_sbrk(void)
 {
   int addr;
   int n;
 
-  if (argint(0, &n) < 0)
+  if(argint(0, &n) < 0)
     return -1;
   addr = myproc()->sz;
-  if (growproc(n) < 0)
+  if(growproc(n) < 0)
     return -1;
   return addr;
 }
 
-int sys_sleep(void)
+int
+sys_sleep(void)
 {
   int n;
   uint ticks0;
 
-  if (argint(0, &n) < 0)
+  if(argint(0, &n) < 0)
     return -1;
   acquire(&tickslock);
   ticks0 = ticks;
-  while (ticks - ticks0 < n)
-  {
-    if (myproc()->killed)
-    {
+  while(ticks - ticks0 < n){
+    if(myproc()->killed){
       release(&tickslock);
       return -1;
     }
@@ -79,7 +79,8 @@ int sys_sleep(void)
 
 // return how many clock tick interrupts have occurred
 // since start.
-int sys_uptime(void)
+int
+sys_uptime(void)
 {
   uint xticks;
 
@@ -89,42 +90,33 @@ int sys_uptime(void)
   return xticks;
 }
 
+// added below sys for semaphore  
 
-int sys_sem_init(void) {
-  int value;
-  if (argint(0, &value) < 0)
-    return -1;
-
-  struct semaphore* sem;
-  if (argptr(1, (void*)&sem, sizeof(*sem)) < 0)
-    return -1;
-
-  sem_init(sem, value);
-
-  return 111;
+int
+sys_sem_init(void)
+{
+  int i;
+  int v;
+  argint(0, &i);
+  argint(1,&v);
+  sem_init(i,v);
+  return 0;
 }
 
-int sys_sem_acquire(void) {
-  struct semaphore* sem;
-  if (argptr(0, (void*)&sem, sizeof(*sem)) < 0)
-    return -1;
-
-  sem_acquire(sem);
-
-  return 222;
+int
+sys_sem_acquire(void)
+{
+  int i;
+  argint(0,&i);
+  sem_acquire(i);
+  return 0;
 }
 
-int sys_sem_release(void) {
-  struct semaphore* sem;
-  if (argptr(0, (void*)&sem, sizeof(*sem)) < 0)
-    return -1;
-
-  sem_release(sem);
-
-  return 333;
-}
-
-int sys_sem_destroy(void) {
-
-  return 444;
+int 
+sys_sem_release(void)
+{
+  int i;
+  argint(0,&i);
+  sem_release(i);
+  return 0;
 }

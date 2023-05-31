@@ -1,44 +1,44 @@
 struct stat;
 struct rtcdate;
-struct semaphore;
 
 // system calls
 int fork(void);
 int exit(void) __attribute__((noreturn));
 int wait(void);
-int pipe(int *);
-int write(int, const void *, int);
-int read(int, void *, int);
+int pipe(int*);
+int write(int, const void*, int);
+int read(int, void*, int);
 int close(int);
 int kill(int);
-int exec(char *, char **);
-int open(const char *, int);
-int mknod(const char *, short, short);
-int unlink(const char *);
-int fstat(int fd, struct stat *);
-int link(const char *, const char *);
-int mkdir(const char *);
-int chdir(const char *);
+int exec(char*, char**);
+int open(const char*, int);
+int mknod(const char*, short, short);
+int unlink(const char*);
+int fstat(int fd, struct stat*);
+int link(const char*, const char*);
+int mkdir(const char*);
+int chdir(const char*);
 int dup(int);
 int getpid(void);
-char *sbrk(int);
+char* sbrk(int);
 int sleep(int);
 int uptime(void);
 
-int sem_init(struct semaphore *sem, int value);
-int sem_acquire(struct semaphore *sem);
-int sem_release(struct semaphore *sem);
-int sem_destroy(struct semaphore *sem);
+// semaphore sys
+int sem_init(uint,uint);
+int sem_acquire(uint);
+int sem_release(uint);
+
 // ulib.c
-int stat(const char *, struct stat *);
-char *strcpy(char *, const char *);
-void *memmove(void *, const void *, int);
-char *strchr(const char *, char c);
-int strcmp(const char *, const char *);
-void printf(int, const char *, ...);
-char *gets(char *, int max);
-uint strlen(const char *);
-void *memset(void *, int, uint);
-void *malloc(uint);
-void free(void *);
-int atoi(const char *);
+int stat(const char*, struct stat*);
+char* strcpy(char*, const char*);
+void *memmove(void*, const void*, int);
+char* strchr(const char*, char c);
+int strcmp(const char*, const char*);
+void printf(int, const char*, ...);
+char* gets(char*, int max);
+uint strlen(const char*);
+void* memset(void*, int, uint);
+void* malloc(uint);
+void free(void*);
+int atoi(const char*);
