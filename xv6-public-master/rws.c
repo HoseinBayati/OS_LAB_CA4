@@ -1,4 +1,3 @@
-#include <pthread.h>
 #include "types.h"
 #include "stat.h"
 #include "user.h"
@@ -9,126 +8,118 @@
 #define NUM_WRITERS 2
 #define BUF_SIZE 512
 
+#define WRITE 2
+#define MUTEX 1
+
 int read_count = 0;
+
+int file_content = 0;
 
 void writer()
 {
-    while (1)
+    do
     {
-        sem_acquire(3); // Acquire resource_mutex
-        // Write operation
+        sem_acquire(WRITE);
 
-        int fd = open("output.txt", O_WRONLY | O_CREATE);
-        if (fd < 0)
-        {
-            printf(1, "Error opening the file for writing\n");
-            exit();
-        }
+        printf(1, "WRITER_CRITICAL BEGIN \n");
+        // char buff[1024];
+        // int fd;
+        // fd = open("/rwss.txt", O_CREATE | O_RDWR);
+        // strcpy(buff, "\nwriting to file!");
+        // int bytesWritten = write(fd, buff, strlen(buff));
+        // if (bytesWritten < 0)
+        // {
+        //     printf(1, "Error writing to the file\n");
+        //     close(fd);
+        //     exit();
+        // }
+        // printf(1, "Write successful. Wrote %d bytes to the file.\n", bytesWritten);
 
-        char *message = "Hello, xv6!";
-        int bytesWritten = write(fd, message, strlen(message));
-        if (bytesWritten < 0)
-        {
-            printf(1, "Error writing to the file\n");
-            close(fd);
-            exit();
-        }
+        // close(fd);
+        file_content++;
+        printf(1, "WRITER_CRITICAL END \n");
 
-        printf(1, "Write successful. Wrote %d bytes to the file.\n", bytesWritten);
-
-        // Close the file
-        close(fd);
-
-        sem_release(3); // Release resource_mutex
-
-        sem_release(0); // Release rw_mutex
-        sleep(1);
-    }
+        sem_release(WRITE);
+        sleep(10);
+    } while (1);
 }
 
 void reader()
 {
-    while (1)
+    do
     {
-        sem_acquire(1); // Acquire mutex
+        sem_acquire(MUTEX);
         read_count++;
         if (read_count == 1)
         {
-            sem_acquire(0); // Acquire rw_mutex
+            sem_acquire(WRITE);
         }
-        sem_release(1); // Release mutex
+        sem_release(MUTEX);
 
-        sem_acquire(3); // Acquire resource_mutex
-        // Read operation
-        int fd = open("readers_writers_shared_file.txt", O_RDONLY);
+        printf(1, "READER_CRITICAL BEGIN \n");
 
-        if (fd < 0)
-        {
-            printf(1, "Error opening the file for reading\n");
-            exit();
-        }
+        // char buff[1024];
+        // memset(buff, 0, 1024);
 
-        char buffer[BUF_SIZE];
-        int bytesRead = read(fd, buffer, sizeof(buffer));
-        if (bytesRead < 0)
-        {
-            printf(1, "Error reading from the file\n");
-            close(fd);
-            exit();
-        }
+        // int fd = open("/rwss.txt", O_RDONLY);
+        // if (fd < 0)
+        // {
+        //     printf(1, "Error opening the file for reading\n");
+        //     exit();
+        // }
 
-        printf(1, "File contents:\n");
-        write(1, buffer, bytesRead); // Write to stdout
-        close(fd);
+        // int bytesRead = read(fd, buff, 1024);
+        // if (bytesRead < 0)
+        // {
+        //     printf(1, "Error reading from the file\n");
+        //     close(fd);
+        //     exit();
+        // }
+        // printf(1, "file content: %s\n", buff);
+        // close(fd);
+        printf(1, "file_content: %d", file_content);
 
-        sem_release(3); // Release resource_mutex
+        printf(1, "READER_CRITICAL END \n");
 
-        sem_acquire(1); // Acquire mutex
+        sem_acquire(MUTEX);
         read_count--;
         if (read_count == 0)
         {
-            sem_release(0); // Release rw_mutex
+            sem_release(WRITE);
         }
-        sem_release(1); // Release mutex
-
-        sleep(1);
-    }
+        sem_release(MUTEX);
+        sleep(10);
+    } while (1);
 }
 
 int main()
 {
-    // Initialize semaphores and variables
-    sem_init(0, 1); // rw_mutex
-    sem_init(1, 1); // mutex
-    sem_init(3, 1); // resource_mutex
+    sem_init(WRITE, 1);
+    sem_init(MUTEX, 1);
     read_count = 0;
     printf(1, "rws main\n");
 
-    // Create reader processes
     for (int i = 0; i < NUM_READERS; i++)
     {
         printf(1, "readers in::  %d\n", i);
-        // Create a new process for each reader
         int pid = fork();
         if (pid == 0)
         {
             reader();
+            printf(1, "readers out::  %d\n", i);
         }
-        printf(1, "readers out::  %d\n", i);
     }
 
-    // Create writer processes
     for (int i = 0; i < NUM_WRITERS; i++)
     {
-        // Create a new process for each writer
         printf(1, "writers in::  %d\n", i);
 
         int pid = fork();
         if (pid == 0)
         {
             writer();
+            printf(1, "writers out::  %d\n", i);
         }
-        printf(1, "writers out::  %d\n", i);
     }
 
     exit();
