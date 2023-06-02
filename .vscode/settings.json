@@ -7,6 +7,10 @@
         "mmu.h": "c",
         "memlayout.h": "c",
         "user.h": "c",
-        "semaphore.h": "c"
+        "semaphore.h": "c",
+        "defs.h": "c",
+        "fcntl.h": "c",
+        "stat.h": "c",
+        "vector": "c"
     }
 }
