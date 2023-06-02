@@ -8,57 +8,53 @@
 #define NUM_WRITERS 2
 #define BUF_SIZE 512
 
-#define WRT 2
-#define MUTEX 1
+#define WRT 1
+#define MUTEX 0
 
 int read_count = 0;
+
 int file_content = 0;
 
 void writer(int id)
 {
-    do
-    {
-        sem_acquire(WRT);
+    sem_acquire(WRT);
 
-        printf(1, "WRITER_CRITICAL BEGIN \n");
+    printf(1, "WRITER_CRITICAL BEGIN \n");
 
-        file_content++;
-        printf(1, "%d :: file_content: %d\n", id, file_content);
+    file_content++;
+    printf(1, "%d :: file_content: %d \n", id, file_content);
 
-        printf(1, "WRITER_CRITICAL END \n");
+    printf(1, "WRITER_CRITICAL END \n");
 
-        sem_release(WRT);
-        sleep(1);
-    } while (1);
+    sem_release(WRT);
+    exit();
 }
 
 void reader(int id)
 {
-    do
+    sem_acquire(MUTEX);
+    read_count++;
+    if (read_count == 1)
     {
-        sem_acquire(MUTEX);
-        read_count++;
-        if (read_count == 1)
-        {
-            sem_acquire(WRT);
-        }
-        sem_release(MUTEX);
+        sem_acquire(WRT);
+    }
+    sem_release(MUTEX);
 
-        printf(1, "READER_CRITICAL BEGIN \n");
+    printf(1, "READER_CRITICAL BEGIN \n");
 
-        printf(1, "%d :: file_content: %d\n", id, file_content);
+    printf(1, "%d :: file_content: %d \n", id, file_content);
 
-        printf(1, "READER_CRITICAL END \n");
+    printf(1, "READER_CRITICAL END \n");
 
-        sem_acquire(MUTEX);
-        read_count--;
-        if (read_count == 0)
-        {
-            sem_release(WRT);
-        }
-        sem_release(MUTEX);
-        sleep(1);
-    } while (1);
+    sem_acquire(MUTEX);
+    read_count--;
+    if (read_count == 0)
+    {
+        sem_release(WRT);
+    }
+    sem_release(MUTEX);
+
+    exit();
 }
 
 int main(void)
@@ -68,14 +64,6 @@ int main(void)
 
     int pid;
 
-    for (int i = 0; i < NUM_WRITERS; i++)
-    {
-        if ((pid = fork()) == 0)
-        {
-            writer(i);
-        }
-    }
-
     for (int i = 0; i < NUM_READERS; i++)
     {
         if ((pid = fork()) == 0)
@@ -84,8 +72,17 @@ int main(void)
         }
     }
 
+    for (int i = 0; i < NUM_WRITERS; i++)
+    {
+        if ((pid = fork()) == 0)
+        {
+            writer(i);
+        }
+    }
+
+    wait();
+
     printf(1, "%d :: file_content: %d\n", pid, file_content);
 
-    exit();
     return 0;
 }

@@ -11,6 +11,8 @@
         "defs.h": "c",
         "fcntl.h": "c",
         "stat.h": "c",
-        "vector": "c"
+        "vector": "c",
+        "string_view": "c",
+        "types.h": "c"
     }
 }

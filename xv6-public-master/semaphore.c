@@ -9,37 +9,50 @@
 
 #define NUMSEMAPHORE 3
 
-struct Semaphore sems[NUMSEMAPHORE];
+struct semaphore sems[NUMSEMAPHORE];
 
-void sem_init(uint i, uint v)
+void sem_init(uint id, uint v)
 {
-    sems[i].value = v;
-    for (int j = 0; j < NPROC; j++)
-        sems[i].procs[j] = 0;
-    sems[i].first_proc = sems[i].last_proc = 0;
-    return;
+    initlock(&sems[id].lock, (char *)&sems[id]);
+    acquire(&sems[id].lock);
+
+    sems[id].val = v;
+    sems[id].next = sems[id].end = 0;
+
+    for (int i = 0; i < NPROC; i++)
+        sems[id].procs[i] = 0;
+
+    release(&sems[id].lock);
 }
 
-void sem_acquire(uint i)
+void sem_acquire(uint id)
 {
-    sems[i].value--;
+    acquire(&sems[id].lock);
 
-    if (sems[i].value < 0)
+    sems[id].val--;
+
+    if (sems[id].val < 0)
     {
-        sems[i].procs[sems[i].last_proc] = myproc();
-        sems[i].last_proc = (sems[i].last_proc + 1) % NPROC;
+        sems[id].procs[sems[id].end] = myproc();
+        sems[id].end = (sems[id].end + 1) % NPROC;
         sleepcurrent();
     }
+
+    release(&sems[id].lock);
 }
 
-void sem_release(uint i)
+void sem_release(uint id)
 {
-    sems[i].value++;
+    acquire(&sems[id].lock);
 
-    if (sems[i].procs[sems[i].first_proc])
+    sems[id].val++;
+
+    if (sems[id].val <= 0 && sems[id].procs[sems[id].next] != 0)
     {
-        wakeupprocess(sems[i].procs[sems[i].first_proc]);
-        sems[i].procs[sems[i].first_proc] = 0;
-        sems[i].first_proc = (sems[i].first_proc + 1) % NPROC;
+        wakeupprocess(sems[id].procs[sems[id].next]);
+        sems[id].procs[sems[id].next] = 0;
+        sems[id].next = (sems[id].next + 1) % NPROC;
     }
+
+    release(&sems[id].lock);
 }

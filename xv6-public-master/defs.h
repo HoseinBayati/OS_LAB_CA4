@@ -10,7 +10,7 @@ struct sleeplock;
 struct stat;
 struct superblock;
 
-// Semaphore.c
+// semaphore.c
 void            sem_init(uint,uint); // added 
 void            sem_acquire(uint);   // added
 void            sem_release(uint);   // added
