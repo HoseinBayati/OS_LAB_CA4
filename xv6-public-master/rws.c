@@ -85,16 +85,17 @@ void writer(int id)
 
     exit();
 }
-
 void reader(int id)
 {
     int counter;
+
+    sem_acquire(WRT);
 
     sem_acquire(MUTEX);
     read_count++;
     if (read_count == 1)
     {
-        sem_acquire(WRT);
+        sem_release(WRT);
     }
     sem_release(MUTEX);
 
