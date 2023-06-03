@@ -6,7 +6,6 @@
 
 #define NUM_READERS 3
 #define NUM_WRITERS 2
-#define BUF_SIZE 512
 
 #define WRT 1
 #define MUTEX 0
