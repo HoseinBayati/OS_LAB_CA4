@@ -68,55 +68,63 @@ void writer(int id)
 {
 
     int file_content;
+
     sleep(10);
 
-    sem_acquire(WRT);
+    for (int i = 0; i < INC_QUANT; i++)
+    {
+        sem_acquire(WRT);
 
-    printf(1, "WRITER_CRITICAL BEGIN \n");
+        printf(1, "WRITER_CRITICAL BEGIN \n");
 
-    file_content = counter_get("counter");
-    file_content++;
-    printf(1, "%d :: file_content: %d \n", id, file_content);
-    counter_set("counter", file_content);
+        file_content = counter_get("counter");
+        file_content++;
+        printf(1, "WRITER %d :: file_content: %d \n", id, file_content);
+        counter_set("counter", file_content);
 
-    printf(1, "WRITER_CRITICAL END \n");
+        printf(1, "WRITER_CRITICAL END \n");
 
-    sem_release(WRT);
+        sem_release(WRT);
+    }
 
     exit();
 }
 
 void reader(int id)
 {
-    int counter;
+    int file_content;
 
-    sem_acquire(MUTEX);
-    read_count++;
-    if (read_count == 1)
+    sleep(10);
+    
+    for (int i = 0; i < INC_QUANT; i++)
     {
-        sem_release(MUTEX);  
-        sem_acquire(WRT);    
-        sem_acquire(MUTEX);  
+        sem_acquire(MUTEX);
+        read_count++;
+        if (read_count == 1)
+        {
+            sem_release(MUTEX);
+            sem_acquire(WRT);
+            sem_acquire(MUTEX);
+        }
+        sem_release(MUTEX);
+
+        printf(1, "READER_CRITICAL BEGIN \n");
+        file_content = counter_get("counter");
+        printf(1, "READER %d :: file_content: %d \n", id, file_content);
+
+        printf(1, "READER_CRITICAL END \n");
+
+        sem_acquire(MUTEX);
+        read_count--;
+        if (read_count == 0)
+        {
+            sem_release(WRT);
+        }
+        sem_release(MUTEX);
     }
-    sem_release(MUTEX);
-
-    printf(1, "READER_CRITICAL BEGIN \n");
-    counter = counter_get("counter");
-    printf(1, "%d :: file_content: %d \n", id, counter);
-
-    printf(1, "READER_CRITICAL END \n");
-
-    sem_acquire(MUTEX);
-    read_count--;
-    if (read_count == 0)
-    {
-        sem_release(WRT);  
-    }
-    sem_release(MUTEX);
 
     exit();
 }
-
 
 int main(void)
 {
