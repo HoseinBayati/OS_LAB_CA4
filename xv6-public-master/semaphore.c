@@ -1,4 +1,4 @@
-// semaphore.c
+
 
 #include "types.h"
 #include "defs.h"
@@ -15,7 +15,7 @@ int sem_init(uint id, int v)
 {
     if (id >= NUMSEMAPHORE)
     {
-        return -1;  // Invalid semaphore ID
+        return -1;
     }
 
     initlock(&sems[id].lock, "semaphore");
@@ -28,14 +28,14 @@ int sem_init(uint id, int v)
         sems[id].procs[i] = 0;
     release(&sems[id].lock);
 
-    return 0;  // Semaphore initialized successfully
+    return 0;
 }
 
 int sem_acquire(uint id)
 {
     if (id >= NUMSEMAPHORE)
     {
-        return -1;  // Invalid semaphore ID
+        return -1;
     }
 
     acquire(&sems[id].lock);
@@ -50,7 +50,7 @@ int sem_acquire(uint id)
         if (sems[id].end == sems[id].next)
         {
             release(&sems[id].lock);
-            return -2;  // Semaphore full (circular queue is full)
+            return -2;
         }
 
         sems[id].procs[next] = myproc();
@@ -58,14 +58,14 @@ int sem_acquire(uint id)
     }
 
     release(&sems[id].lock);
-    return 0;  // Semaphore acquired successfully
+    return 0;
 }
 
 int sem_release(uint id)
 {
     if (id >= NUMSEMAPHORE)
     {
-        return -1;  // Invalid semaphore ID
+        return -1;
     }
 
     acquire(&sems[id].lock);
@@ -81,7 +81,7 @@ int sem_release(uint id)
             if (next == sems[id].next)
             {
                 release(&sems[id].lock);
-                return -2;  // No processes waiting on the semaphore
+                return -2;
             }
         }
 
@@ -91,5 +91,5 @@ int sem_release(uint id)
     }
 
     release(&sems[id].lock);
-    return 0;  // Semaphore released successfully
+    return 0;
 }
