@@ -25,7 +25,7 @@ int sleep(int);
 int uptime(void);
 
 // semaphore sys
-int sem_init(uint,uint);
+int sem_init(uint,int);
 int sem_acquire(uint);
 int sem_release(uint);
 

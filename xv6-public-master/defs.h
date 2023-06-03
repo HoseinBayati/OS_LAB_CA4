@@ -11,9 +11,9 @@ struct stat;
 struct superblock;
 
 // semaphore.c
-void            sem_init(uint,uint); // added 
-void            sem_acquire(uint);   // added
-void            sem_release(uint);   // added
+int            sem_init(uint,int); // added 
+int            sem_acquire(uint);   // added
+int            sem_release(uint);   // added
 
 // bio.c
 void            binit(void);

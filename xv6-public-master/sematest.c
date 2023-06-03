@@ -1,53 +1,139 @@
+
 #include "types.h"
+#include "stat.h"
 #include "user.h"
+#include "fs.h"
+#include "fcntl.h"
 
-int main()
+#define NUM_CHILDREN 2
+#define TARGET_COUNT_PER_CHILD 50
+#define COUNTER_FILE "counter"
+#define SEMAPHORE_NUM 0
+
+int counter_init(char *filename, int value)
 {
-    // struct semaphore sem;
+    int fd;
 
-    // // Create a semaphore with an initial value of 1
-    // sem_init(&sem, 1);
+    if ((fd = open(filename, O_CREATE | O_RDWR)) < 0)
+    {
+        printf(1, "counter_init: error initializing file: %s\n", filename);
+        exit();
+    }
 
-    // // Fork child processes
-    // printf(1, "TESTART\n");
+    printf(fd, "%d\n", value);
+    close(fd);
 
-    // int pid = fork();
-    // printf(1, "id: %d\n", pid);
+    return 0;
+}
 
-    // if (pid < 0)
-    // {
-    //     printf(1, "Fork failed\n");
-    //     exit();
-    // }
-    // else if (pid == 0)
-    // {
-    //     // Child process
-    //     printf(1, "Child process\n");
+int counter_get(char *filename)
+{
+    int fd, n, value;
+    char buffer[32];
 
-    //     sem_acquire(&sem);
-    //     printf(1, "Child process: Entered critical section\n");
-    //     sleep(500);
-    //     printf(1, "Child process: Exiting critical section\n");
-    //     sem_release(&sem);
-    //     exit();
-    // }
-    // else
-    // {
-    //     // Parent process
-    //     printf(1, "Parent process\n");
+    if ((fd = open(filename, O_CREATE | O_RDWR)) < 0)
+    {
+        printf(1, "counter_get: error opening file: %s\n", filename);
+        exit();
+    }
 
-    //     sem_acquire(&sem);
-    //     printf(1, "Parent process: Entered critical section\n");
-    //     sleep(500);
-    //     printf(1, "Parent process: Exiting critical section\n");
-    //     sem_release(&sem);
-    //     wait();
-    // }
+    n = read(fd, buffer, 31);
+    buffer[n] = '\0';
+    value = atoi(buffer);
+    close(fd);
 
-    // // Clean up the semaphore
-    // // sem_destroy(&sem);
+    return value;
+}
 
-    // exit();
+int counter_set(char *filename, int value)
+{
+    int fd;
 
-    return 1;
+    if ((fd = open(filename, O_CREATE | O_RDWR)) < 0)
+    {
+        printf(1, "counter_set: error opening file: %s\n", filename);
+        exit();
+    }
+
+    printf(fd, "%d\n", value);
+    close(fd);
+
+    return value;
+}
+
+void child(void)
+{
+    int i;
+    int counter;
+
+    printf(1, "Process started...\n");
+    sleep(10);
+
+    for (i = 0; i < TARGET_COUNT_PER_CHILD; i++)
+    {
+        sem_acquire(SEMAPHORE_NUM);
+
+        counter = counter_get("counter");
+        counter++;
+        counter_set("counter", counter);
+
+        sem_release(SEMAPHORE_NUM);
+    }
+
+    exit();
+}
+
+int main(int argc, char **argv)
+{
+    int i;
+    int sem_size;
+    int final_counter;
+    int final_target = NUM_CHILDREN * TARGET_COUNT_PER_CHILD;
+
+    if (argc >= 2)
+        sem_size = NUM_CHILDREN;
+    else
+        sem_size = 1;
+
+    // Initialize semaphore to 1
+    if (sem_init(SEMAPHORE_NUM, sem_size) < 0)
+    {
+        printf(1, "main: error initializing semaphore %d\n", SEMAPHORE_NUM);
+        exit();
+    }
+
+    printf(1, "main: initialized semaphore %d to %d\n", SEMAPHORE_NUM, sem_size);
+
+    // Initialize counter
+    counter_init(COUNTER_FILE, 0);
+
+    printf(1, "Running with %d processes...\n", NUM_CHILDREN);
+
+    // Start all children
+    for (i = 0; i < NUM_CHILDREN; i++)
+    {
+        int pid = fork();
+        if (pid == 0)
+            child();
+    }
+
+    // Wait for all children
+    for (i = 0; i < NUM_CHILDREN; i++)
+    {
+        wait();
+    }
+
+    // Check the result
+    final_counter = counter_get(COUNTER_FILE);
+    printf(1, "Final counter is %d, target is %d\n", final_counter, final_target);
+    if (final_counter == final_target)
+        printf(1, "TEST PASSED!\n");
+    else
+        printf(1, "TEST FAILED!\n");
+
+    // Clean up semaphore
+    // sem_destroy(SEMAPHORE_NUM);
+
+    // Exit
+    exit();
 }

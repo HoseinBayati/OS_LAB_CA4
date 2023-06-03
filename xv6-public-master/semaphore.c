@@ -1,3 +1,5 @@
+// semaphore.c
+
 #include "types.h"
 #include "defs.h"
 #include "param.h"
@@ -7,34 +9,33 @@
 #include "proc.h"
 #include "semaphore.h"
 
-#define NUMSEMAPHORE 3
-
 struct semaphore sems[NUMSEMAPHORE];
 
-void sem_init(uint id, uint v)
+int sem_init(uint id, int v)
 {
     if (id >= NUMSEMAPHORE)
     {
-        return;
+        return -1;  // Invalid semaphore ID
     }
 
-    initlock(&sems[id].lock, (char *)&sems[id]);
+    initlock(&sems[id].lock, "semaphore");
+
     acquire(&sems[id].lock);
-
     sems[id].val = v;
-    sems[id].next = sems[id].end = 0;
-
+    sems[id].next = 0;
+    sems[id].end = 0;
     for (int i = 0; i < NPROC; i++)
         sems[id].procs[i] = 0;
-
     release(&sems[id].lock);
+
+    return 0;  // Semaphore initialized successfully
 }
 
-void sem_acquire(uint id)
+int sem_acquire(uint id)
 {
     if (id >= NUMSEMAPHORE)
     {
-        return;
+        return -1;  // Invalid semaphore ID
     }
 
     acquire(&sems[id].lock);
@@ -43,19 +44,28 @@ void sem_acquire(uint id)
 
     if (sems[id].val < 0)
     {
-        sems[id].procs[sems[id].end] = myproc();
+        int next = sems[id].end;
         sems[id].end = (sems[id].end + 1) % NPROC;
-        sleep(&sems[id].procs[sems[id].end], &sems[id].lock);
+
+        if (sems[id].end == sems[id].next)
+        {
+            release(&sems[id].lock);
+            return -2;  // Semaphore full (circular queue is full)
+        }
+
+        sems[id].procs[next] = myproc();
+        sleep(sems[id].procs[next], &sems[id].lock);
     }
 
     release(&sems[id].lock);
+    return 0;  // Semaphore acquired successfully
 }
 
-void sem_release(uint id)
+int sem_release(uint id)
 {
     if (id >= NUMSEMAPHORE)
     {
-        return;
+        return -1;  // Invalid semaphore ID
     }
 
     acquire(&sems[id].lock);
@@ -71,7 +81,7 @@ void sem_release(uint id)
             if (next == sems[id].next)
             {
                 release(&sems[id].lock);
-                return;
+                return -2;  // No processes waiting on the semaphore
             }
         }
 
@@ -81,4 +91,5 @@ void sem_release(uint id)
     }
 
     release(&sems[id].lock);
+    return 0;  // Semaphore released successfully
 }

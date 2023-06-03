@@ -79,9 +79,12 @@ int main(void)
         }
     }
 
-    wait();
+    for (int i = 0; i < NUM_READERS + NUM_WRITERS; i++)
+    {
+        wait();
+    }
 
-    printf(1, "%d :: file_content: %d\n", pid, file_content);
+    printf(1, "%d :: file_content: %d\n", getpid(), file_content);
 
     return 0;
 }
